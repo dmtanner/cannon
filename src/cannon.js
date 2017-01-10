@@ -33,7 +33,7 @@ var createScene = function () {
     var light1 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(-5, -5, -5), scene);
     var light2 = new BABYLON.DirectionalLight("directionallight", new BABYLON.Vector3(-1, -1, 1), scene);
 
-    var cam = new BABYLON.ArcRotateCamera("cam", 0, 0, 0.1, new BABYLON.Vector3(0, 1, 0), scene);
+    var cam = new BABYLON.ArcRotateCamera("cam", 0, 0, 0.1, new BABYLON.Vector3(0, 2, 0), scene);
     //var cam = new BABYLON.ArcRotateCamera("cam", 0, 0, 0.01, new BABYLON.Vector3(0, 2, 0), scene);
     cam.setPosition(new BABYLON.Vector3(5, 1, 5));
     cam.upperRadiusLimit = 0.01;
@@ -99,8 +99,8 @@ var createScene = function () {
 	//console.log(evt.keyCode);
 	    if(evt.keyCode == 32) {
             var cannonball = createCannonball();
-	        cannonball.position = cam.position.add(new BABYLON.Vector3(0, 1, 0));
-	        var dir = cam.getDirection().normalize();
+	        cannonball.position = cam.getTarget().add(new BABYLON.Vector3(0, 1, 0));
+	        var dir = cam.getFrontPosition(1).subtract(cam.getTarget());
 	        var mag = 20;
 	        console.log(dir);
             cannonball.applyImpulse(dir.multiplyByFloats(mag, mag, mag), BABYLON.Vector3.Zero());
