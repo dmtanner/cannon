@@ -1,0 +1,130 @@
+var canvas = document.getElementById("renderCanvas");
+var engine = new BABYLON.Engine(canvas, true);
+
+
+var createScene = function () {
+	var scene = new BABYLON.Scene(engine);
+
+	scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+
+	var createBox = function() {
+		var box = BABYLON.Mesh.CreateBox("crate", 2, scene);
+		box.material = new BABYLON.StandardMaterial("Mat", scene);
+
+		box.material.diffuseTexture = new BABYLON.Texture("textures/crate.png", scene);
+		//box.material.diffuseTexture.hasAlpha = true;
+		box.setPhysicsState(BABYLON.PhysicsEngine.BoxImpostor, { mass: 1, 
+				friction: 0.3, restitution: 0.5 });
+
+		return box;
+	}
+
+	var createCannonball = function() {
+		var ball = BABYLON.Mesh.CreateSphere("ball", 10, 1, scene);
+		ball.material = new BABYLON.StandardMaterial("Mat", scene);
+		ball.material.diffuseColor = new BABYLON.Color3(0, 0, 0);
+		ball.setPhysicsState(BABYLON.PhysicsEngine.SphereImpostor, { mass: 1, 
+				friction: 0.3, restitution: 0.5 });
+
+		return ball;
+	}
+
+	// Lights
+	var light0 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(5, 5, 5), scene);
+	var light1 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(-5, -5, -5), scene);
+	var light2 = new BABYLON.DirectionalLight("directionallight", new BABYLON.Vector3(-1, -1, 1), scene);
+
+	var camHeight = 7;
+	var cam = new BABYLON.ArcRotateCamera("cam", 0, 0, 0.1, new BABYLON.Vector3(0, camHeight, 0), scene);
+	cam.setPosition(new BABYLON.Vector3(5, camHeight, 5));
+	cam.upperRadiusLimit = 0.1;
+	cam.lowerRadiusLimit = 0.1;
+
+	cam.attachControl(canvas, true);
+	cam.keysLeft = [39];
+	cam.keysRight = [37];
+
+	cam.ellipsoid = new BABYLON.Vector3(2, 4, 2);
+	cam.checkCollisions = true;
+	cam.applyGravity = true;
+	cam.speed = 1;
+	cam.mode = BABYLON.Camera.PERSPECTIVE_CAMERA;
+
+	scene.activeCameras.push(cam);
+
+
+
+	//Ground
+	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/heightMap.png", 100, 100, 100, 0, 10, scene, false, function() {
+			ground.setPhysicsState(BABYLON.PhysicsEngine.HeightmapImpostor, { mass: 0});//friction: 0.5, restitution: 0.5 });
+	ground.updatePhysicsBody();
+});
+var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
+groundMaterial.diffuseTexture = new BABYLON.Texture("textures/ground.jpg", scene);
+groundMaterial.diffuseTexture.uScale = 6;
+groundMaterial.diffuseTexture.vScale = 6;
+groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+groundMaterial.backFaceCulling = true;
+//ground.position.y = -2.05;
+ground.material = groundMaterial;
+
+
+//Simple crate
+
+var box = createBox();
+box.position = new BABYLON.Vector3(3, 5, 3);
+var box2 = createBox();
+box2.position = new BABYLON.Vector3(3, 10, 3);
+
+//Set gravity for the scene (G force like, on Y-axis)
+scene.gravity = new BABYLON.Vector3(0, -0.9, 0);
+
+// Enable Collisions
+scene.collisionsEnabled = true;
+
+//Then apply collisions and gravity to the active cam
+cam.checkCollisions = true;
+cam.applyGravity = true;
+
+//Set the ellipsoid around the cam (e.g. your player's size)
+//cam.ellipsoid = new BABYLON.Vector3(1, 1, 1);
+
+//finally, say which mesh will be collisionable
+ground.checkCollisions = true;
+box.checkCollisions = true;
+
+onKeyDown = function(evt) {
+	//keyStates[evt.keyCode] = true;
+	//console.log(evt.keyCode);
+	if(evt.keyCode == 32) {
+		var cannonball = createCannonball();
+		cannonball.position = cam.getTarget().add(new BABYLON.Vector3(0, 1, 0));
+		cannonball.checkCollisions = true;
+		var dir = cam.getFrontPosition(1).subtract(cam.getTarget()).normalize();
+		var mag = 20;
+		cannonball.applyImpulse(dir.multiplyByFloats(mag, mag, mag), BABYLON.Vector3.Zero());
+	}
+	if(evt.keyCode == 37) {
+		//cam.rotation = 0.1;
+		//console.log(cam.rotation);
+		//console.log(cam.cameraRotation);
+		//console.log(cam.cameraDirection);
+	}
+}
+
+return scene;
+}
+
+var scene = createScene();
+
+engine.runRenderLoop(function() {
+		scene.render();
+		})
+
+window.addEventListener("resize", function() {
+		engine.resize();
+		});
+
+
+window.addEventListener("keydown", onKeyDown, false);
+
