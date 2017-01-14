@@ -30,7 +30,7 @@ var createScene = function () {
 
 	return ball;
     }
-    
+
 
     // Lights
     var light0 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(5, 5, 5), scene);
@@ -44,7 +44,10 @@ var createScene = function () {
     cam.setPosition(new BABYLON.Vector3(-1, camHeight, 1));
     cam.upperRadiusLimit = 0.1;
     cam.lowerRadiusLimit = 0.1;
-    cam.attachControl(canvas, true);
+    cam.speed = 50;
+    cam.inertia = 0.7;
+    cam.angularSensibilityX = 200;
+    cam.attachControl(window, true);
     cam.keysLeft = [39];
     cam.keysRight = [37];
 
@@ -53,9 +56,9 @@ var createScene = function () {
 
 
     //Ground
-    var maxTerrainHeight = 20;
+    var maxTerrainHeight = 19;
 
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/potmHeightMap.png", 100, 100, 100, 0, maxTerrainHeight, scene, false, function() {
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/heightMaps/mountain2HeightMap.png", 100, 100, 100, 0, maxTerrainHeight, scene, false, function() {
 	ground.physicsImpostor = new BABYLON.PhysicsImpostor( ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, friction: 0, restitution: 0 }, scene);
 
 	//window.addEventListener("keydown", this.onKeyDown, false);
@@ -90,6 +93,16 @@ var createScene = function () {
     var box = createBox(new BABYLON.Vector3(10, 5, -10));
     var box2 = createBox(new BABYLON.Vector3(10, 10, -10));
 
+    // Skybox
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 100.0, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.disableLighting = true;
+    skybox.material = skyboxMaterial;
 
     return scene;
 }
