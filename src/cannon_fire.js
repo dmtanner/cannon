@@ -7,6 +7,7 @@ var createScene = function () {
 
     scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
 
+    // Mesh Functions
     var createBox = function(pos) {
 	var box = BABYLON.Mesh.CreateBox("crate", 2, scene);
 	box.material = new BABYLON.StandardMaterial("Mat", scene);
@@ -20,61 +21,44 @@ var createScene = function () {
 	return box;
     }
 
+    var createCannonball = function(pos) {
+	var ball = BABYLON.Mesh.CreateSphere("ball", 10, 1, scene);
+	ball.material = new BABYLON.StandardMaterial("Mat", scene);
+	ball.material.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	ball.position = pos;
+	ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0, restitution: 0 }, scene );
+
+	return ball;
+    }
+    
 
     // Lights
     var light0 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(5, 5, 5), scene);
     var light1 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(-5, -5, -5), scene);
     var light2 = new BABYLON.DirectionalLight("directionallight", new BABYLON.Vector3(-1, -1, 1), scene);
 
-    var camHeight = 7;
+
+    // Camera
+    var camHeight = 20;
     var cam = new BABYLON.ArcRotateCamera("cam", 0, 0, 0.1, new BABYLON.Vector3(0, camHeight, 0), scene);
     cam.setPosition(new BABYLON.Vector3(-1, camHeight, 1));
     cam.upperRadiusLimit = 0.1;
     cam.lowerRadiusLimit = 0.1;
-
     cam.attachControl(canvas, true);
     cam.keysLeft = [39];
     cam.keysRight = [37];
-
-    //cam.ellipsoid = new BABYLON.Vector3(2, 4, 2);
-    //cam.checkCollisions = true;
-    //cam.applyGravity = true;
-    //cam.speed = 1;
-    //cam.mode = BABYLON.Camera.PERSPECTIVE_CAMERA;
 
     scene.activeCameras.push(cam);
 
 
 
     //Ground
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/heightMap.png", 100, 100, 100, 0, 10, scene, false, function() {
-	ground.setPhysicsState(BABYLON.PhysicsEngine.HeightmapImpostor, { mass: 0, friction: 0, restitution: 0 });
+    var maxTerrainHeight = 20;
 
-	var createCannonball = function(pos) {
-	    var ball = BABYLON.Mesh.CreateSphere("ball", 10, 1, scene);
-	    ball.material = new BABYLON.StandardMaterial("Mat", scene);
-	    ball.material.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	    ball.position = pos;
-	    //ball.setPhysicsState(BABYLON.PhysicsEngine.SphereImpostor, { mass: 1, 
-	    //    friction: .03, restitution: 0.1 });
-	    ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0, restitution: 0 }, scene );
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/potmHeightMap.png", 100, 100, 100, 0, maxTerrainHeight, scene, false, function() {
+	ground.physicsImpostor = new BABYLON.PhysicsImpostor( ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, friction: 0, restitution: 0 }, scene);
 
-	    return ball;
-	}
-
-	onKeyDown = function(evt) {
-	    //keyStates[evt.keyCode] = true;
-	    //console.log(evt.keyCode);
-	    if(evt.keyCode == 32) {
-		var cannonball = createCannonball(cam.getTarget().add(new BABYLON.Vector3(0, 3, 0)));
-		var dir = cam.getFrontPosition(1).subtract(cam.getTarget()).normalize();
-		var mag = 20;
-		cannonball.physicsImpostor.applyImpulse(dir.multiplyByFloats(mag, mag, mag), BABYLON.Vector3.Zero());
-		//cannonball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.2, restitution: 0.3 }, scene );
-	    }
-	}
-
-	window.addEventListener("keydown", this.onKeyDown, false);
+	//window.addEventListener("keydown", this.onKeyDown, false);
 
     });
     var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
@@ -86,7 +70,22 @@ var createScene = function () {
     ground.material = groundMaterial;
 
 
-    //Simple crate
+
+    // Keyboard Input
+    onKeyDown = function(evt) {
+	//keyStates[evt.keyCode] = true;
+	//console.log(evt.keyCode);
+	var keySpace = 32;
+	// Shoot
+	if(evt.keyCode == keySpace) {
+	    var cannonball = createCannonball(cam.getTarget().add(new BABYLON.Vector3(0, 3, 0)));
+	    var dir = cam.getFrontPosition(1).subtract(cam.getTarget()).normalize();
+	    var mag = 20;
+	    cannonball.physicsImpostor.applyImpulse(dir.multiplyByFloats(mag, mag, mag), BABYLON.Vector3.Zero());
+	}
+    }
+
+    // Create crates
 
     var box = createBox(new BABYLON.Vector3(10, 5, -10));
     var box2 = createBox(new BABYLON.Vector3(10, 10, -10));
@@ -106,5 +105,5 @@ window.addEventListener("resize", function() {
 });
 
 
-//window.addEventListener("keydown", onKeyDown, false);
+window.addEventListener("keydown", onKeyDown, false);
 
